@@ -1,3 +1,8 @@
+/*
+ * ofaGlue.c
+ * This file has the implementation to call the OFA chain implementation
+ * coming from an IOS-XR library.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
