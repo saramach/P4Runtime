@@ -16,7 +16,7 @@ ios-xr           : Code that implements the OFA chains.
 ```
 git clone https://github.com/saramach/P4Runtime.git
 ```
-2. Fetch some dependencies
+2. Fetch some dependencies (TBD: Script this)
 ```
 go get github.com/golang/protobuf/proto
 go get github.com/golang/protobuf/ptypes/any
@@ -25,7 +25,7 @@ go get google.golang.org/genproto/googleapis/rpc/status
 go get google.golang.org/grpc
 go get google.golang.org/grpc/reflection
 ```
-3. Build the controller and the rtagent
+3. Build the controller and the rtagent (TBD: 'make' this)
 ```
 go install rtagent
 go install controller
