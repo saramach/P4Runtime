@@ -1,0 +1,179 @@
+{
+  "pkgInfo": {
+    "name": "simple_router.p4", 
+    "url": "www.p4.org", 
+    "doc": {
+      "brief": "Simple L3 router", 
+      "description": "P4Info for a simple L3 router"
+    }, 
+    "contact": "support@p4.org", 
+    "version": "1.0", 
+    "organization": "P4.org", 
+    "arch": "psa", 
+    "annotations": [
+      "ofa_package_simplerouter"
+    ]
+  }, 
+  "actions": [
+    {
+      "preamble": {
+        "alias": "NoAction", 
+        "id": 16800567, 
+        "name": "NoAction"
+      }
+    }, 
+    {
+      "preamble": {
+        "alias": "_drop", 
+        "id": 16784184, 
+        "name": "_drop"
+      }
+    }, 
+    {
+      "params": [
+        {
+          "bitwidth": 48, 
+          "id": 1, 
+          "name": "dmac"
+        }
+      ], 
+      "preamble": {
+        "alias": "set_dmac", 
+        "id": 16780303, 
+        "name": "set_dmac"
+      }
+    }, 
+    {
+      "params": [
+        {
+          "bitwidth": 32, 
+          "id": 1, 
+          "name": "nhop_ipv4"
+        }, 
+        {
+          "bitwidth": 9, 
+          "id": 2, 
+          "name": "port"
+        }
+      ], 
+      "preamble": {
+        "alias": "set_nhop", 
+        "id": 16812204, 
+        "name": "set_nhop"
+      }
+    }, 
+    {
+      "params": [
+        {
+          "bitwidth": 48, 
+          "id": 1, 
+          "name": "smac"
+        }
+      ], 
+      "preamble": {
+        "alias": "rewrite_mac", 
+        "id": 16813016, 
+        "name": "rewrite_mac"
+      }
+    }
+  ], 
+  "tables": [
+    {
+      "actionRefs": [
+        {
+          "id": 16784184
+        }
+      ], 
+      "preamble": {
+        "alias": "drop_all", 
+        "id": 33619866, 
+        "name": "drop_all"
+      }, 
+      "size": "1"
+    }, 
+    {
+      "actionRefs": [
+        {
+          "id": 16780303
+        }, 
+        {
+          "id": 16784184
+        }, 
+        {
+          "id": 16800567, 
+          "annotations": [
+            "@defaultonly()"
+          ]
+        }
+      ], 
+      "matchFields": [
+        {
+          "matchType": "EXACT", 
+          "bitwidth": 32, 
+          "id": 1, 
+          "name": "routing_metadata.nhop_ipv4"
+        }
+      ], 
+      "preamble": {
+        "alias": "forward", 
+        "id": 33589124, 
+        "name": "forward"
+      }, 
+      "size": "512"
+    }, 
+    {
+      "actionRefs": [
+        {
+          "id": 16812204
+        }, 
+        {
+          "id": 16784184
+        }
+      ], 
+      "matchFields": [
+        {
+          "matchType": "LPM", 
+          "bitwidth": 32, 
+          "id": 1, 
+          "name": "ipv4.dstAddr"
+        }
+      ], 
+      "preamble": {
+        "alias": "ipv4_lpm", 
+        "id": 33581985, 
+        "name": "ipv4_lpm"
+      }, 
+      "size": "1024"
+    }, 
+    {
+      "actionRefs": [
+        {
+          "id": 16813016
+        }, 
+        {
+          "id": 16784184
+        }, 
+        {
+          "id": 16800567, 
+          "annotations": [
+            "@defaultonly()"
+          ]
+        }
+      ], 
+      "matchFields": [
+        {
+          "matchType": "EXACT", 
+          "bitwidth": 9, 
+          "id": 1, 
+          "name": "standard_metadata.egress_port"
+        }
+      ], 
+      "preamble": {
+        "alias": "send_frame", 
+        "id": 33562826, 
+        "name": "send_frame"
+      }, 
+      "size": "256"
+    }
+  ]
+}
