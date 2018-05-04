@@ -10,6 +10,7 @@ package main
 
 import (
 	"fmt"
+	"globals"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -17,16 +18,53 @@ import (
 	"log"
 	"net"
 	"p4"
-	p4_config "p4/config"
+	"simplerouter"
 )
 
 const (
 	port = ":51977"
 )
 
-var p4Info p4_config.P4Info
+var (
+	implementationExists	bool	= false
+	p4infoAnnotation		string
+)
 
 type p4RuntimeServer struct{}
+
+// Look at the annotation in the p4Info and set the implementation
+// status and pick up a target package accordingly.
+func setImplementationStatus() {
+	implementationExists = false
+	for _, annotation := range globals.MyP4Info.GetPkgInfo().GetAnnotations() {
+		fmt.Printf("Checking annotation: %s\n", annotation)
+		switch annotation {
+		case "ofa_package_simplerouter":
+			implementationExists = true
+			p4infoAnnotation = annotation
+		default:
+			// Don't know this annotation
+		}
+	}
+}
+
+// Execute the table operation. Based on the annotation we got in
+// the p4Info, we'll pick the OFA chain implementation. If we
+// don't have a package for the specific program, pass on the
+// update.
+func tableOperation(tableEntry *p4.TableEntry, op p4.Update_Type) {
+	if implementationExists == false {
+		fmt.Println("No matching implementation found for this program")
+		return
+	}
+	fmt.Printf("Implementation tag: %s\n", p4infoAnnotation);
+	switch p4infoAnnotation {
+	case "ofa_package_simplerouter":
+		simplerouter.HandleTableOperation(tableEntry, op)
+	default:
+		fmt.Println("No matching implementation for this annotation")
+	}
+}
 
 // Write from the controller to the switch.
 func (s *p4RuntimeServer) Write(ctx context.Context, wrReq *p4.WriteRequest) (*p4.WriteResponse, error) {
@@ -37,8 +75,7 @@ func (s *p4RuntimeServer) Write(ctx context.Context, wrReq *p4.WriteRequest) (*p
 		switch x := singleUpdate.Entity.Entity.(type) {
 		case *p4.Entity_TableEntry:
 			fmt.Println("Table Entry message received")
-			tableEntry := x.TableEntry
-			handleTableOperation(tableEntry, singleUpdate.Type)
+			tableOperation(x.TableEntry, singleUpdate.Type)
 		case nil:
 			fmt.Println("Field not set")
 		default:
@@ -59,9 +96,14 @@ func (s *p4RuntimeServer) Read(rdReq *p4.ReadRequest, stream p4.P4Runtime_ReadSe
 func (s *p4RuntimeServer) SetForwardingPipelineConfig(ctx context.Context, cfgSetReq *p4.SetForwardingPipelineConfigRequest) (*p4.SetForwardingPipelineConfigResponse, error) {
 	fmt.Printf("Received forwarding pipeline config for device %d, role %d %+v\n",
 		cfgSetReq.DeviceId, cfgSetReq.RoleId, cfgSetReq.Config.P4Info)
-	p4Info = *cfgSetReq.Config.GetP4Info()
-	fmt.Printf("Table info: %+v\n", p4Info.Tables)
-	fmt.Println(p4Info.Tables[0].Preamble.Name)
+	globals.MyP4Info = *cfgSetReq.Config.GetP4Info()
+	fmt.Printf("Package info: %v\n", globals.MyP4Info.GetPkgInfo())
+	fmt.Printf("Table info: %+v\n", globals.MyP4Info.GetTables())
+	fmt.Println(globals.MyP4Info.Tables[0].Preamble.Name)
+
+	// Look at the Package info in the p4Info and set the implementation
+	// status.
+	setImplementationStatus()
 	return &p4.SetForwardingPipelineConfigResponse{}, nil
 }
 

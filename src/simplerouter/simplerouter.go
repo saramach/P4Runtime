@@ -2,12 +2,13 @@
 // For now, this code strictly binds to the P4 program. Just for the PoC
 // For general use, this binding has to be removed.
 
-package main
+package simplerouter
 
 import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"globals"
 	"p4"
 	"p4InfoUtils"
 	"strings"
@@ -57,7 +58,7 @@ func routeInsert(tableEntry *p4.TableEntry) error {
 	var pfxData prefixData
 	var nhData nexthopData
 
-	tableName := p4InfoUtils.GetTableNameFromId(&p4Info, tableEntry.TableId)
+	tableName := p4InfoUtils.GetTableNameFromId(&globals.MyP4Info, tableEntry.TableId)
 	for _, match := range tableEntry.GetMatch() {
 		switch match.GetFieldMatchType().(type) {
 		case *p4.FieldMatch_Lpm:
@@ -78,7 +79,7 @@ func routeInsert(tableEntry *p4.TableEntry) error {
 		var paramName string
 		for _, param := range action.GetParams() {
 			paramName = p4InfoUtils.GetParamNameInAction(
-				&p4Info,
+				&globals.MyP4Info,
 				actionId,
 				param.GetParamId())
 			if strings.Compare(paramName, "nhop_ipv4") == 0 {
@@ -121,7 +122,7 @@ func routeInsert(tableEntry *p4.TableEntry) error {
 func routeDelete(tableEntry *p4.TableEntry) error {
 	var pfxData prefixData
 
-	tableName := p4InfoUtils.GetTableNameFromId(&p4Info, tableEntry.TableId)
+	tableName := p4InfoUtils.GetTableNameFromId(&globals.MyP4Info, tableEntry.TableId)
 	for _, match := range tableEntry.GetMatch() {
 		switch match.GetFieldMatchType().(type) {
 		case *p4.FieldMatch_Lpm:
@@ -187,7 +188,7 @@ func macBindInsert(tableEntry *p4.TableEntry) error {
 		// We expect to see only a destination MAC address
 		for _, param := range action.GetParams() {
 			paramName = p4InfoUtils.GetParamNameInAction(
-				&p4Info,
+				&globals.MyP4Info,
 				actionId,
 				param.GetParamId())
 			if strings.Compare(paramName, "dmac") == 0 {
@@ -243,8 +244,8 @@ func handleMacBinding(tableEntry *p4.TableEntry, op p4.Update_Type) error {
 
 }
 
-func handleTableOperation(tableEntry *p4.TableEntry, op p4.Update_Type) error {
-	tableName := p4InfoUtils.GetTableNameFromId(&p4Info, tableEntry.TableId)
+func HandleTableOperation(tableEntry *p4.TableEntry, op p4.Update_Type) error {
+	tableName := p4InfoUtils.GetTableNameFromId(&globals.MyP4Info, tableEntry.TableId)
 	fmt.Println("Table operation for :", tableName)
 	switch tableName {
 	case "ipv4_lpm":
