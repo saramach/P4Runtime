@@ -1,0 +1,32 @@
+{
+  "table": [
+    {
+      "name": "forward",
+      "op": "insert",
+      "nhIP": "17010102",
+      "macAddr": "008a9694b094"
+    },
+    {
+      "name": "forward",
+      "op": "insert",
+      "nhIP": "19010102",
+      "macAddr": "008a96a5e4b8"
+    },
+    {
+      "name": "ipv4_lpm",
+      "op": "insert",
+      "prefix": "7d010100",
+      "plen": 24,
+      "nexthop": "19010102",
+      "port": "000001d0"
+    },
+    {
+      "name": "ipv4_lpm",
+      "op": "insert",
+      "prefix": "7b010100",
+      "plen": 24,
+      "nexthop": "17010102",
+      "port": "000001c8"
+    }
+  ]
+}
