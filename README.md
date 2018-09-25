@@ -31,3 +31,8 @@ go install rtagent
 go install controller
 ```
 This will place the 'rtagnet' and 'controller' binaries in the bin/ directory
+
+4. Start the rtagent and then the controller. 
+```
+[xr-vm_node0_0_CPU0:/]$./controller -p4info=./simple_router-p4info.json -operations=./operations.json
+```
